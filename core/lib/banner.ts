@@ -1,6 +1,7 @@
 import chalk from "chalk";
 
 export function makeBanner(): void {
+    // TODO: scramble christmas tree to be random every time.
     console.log();
     console.log(chalk.whiteBright`       c`);
     console.log(chalk.green`      >{cyan o}<`);
@@ -12,6 +13,7 @@ export function makeBanner(): void {
 }
 
 const quotes = [
+    // TODO: add more quotes
     "Home is where Christmas is!",
     "Season's Greetings!",
     "Comfort and Joy!",

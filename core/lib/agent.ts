@@ -1,6 +1,6 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
 import NodeHtmlParser from "node-html-parser";
-import ora, { Ora } from "ora";
+import ora from "ora";
 
 export interface SessionInfo {
     username: string;
@@ -109,6 +109,7 @@ export async function submitLevelSolution(
 ): Promise<"ok" | "incorrect" | "too-recent" | "error"> {
     const spinner = createSpinner("Submitting solution ...").start();
 
+    // TODO: this always says that the answer is correct.
     const response = await fetch(
         URL_TEMPLATES.SUBMIT.replace("{year}", year.toString()).replace("{day}", day.toString()),
         {
@@ -117,7 +118,11 @@ export async function submitLevelSolution(
                 level: part.toString(),
                 answer: result,
             }),
-            headers: getHeaders(),
+            headers: {
+                ...getHeaders(),
+                Referer: URL_TEMPLATES.LEVEL.replace("{year}", year.toString()).replace("{day}", day.toString()),
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
         }
     );
 
@@ -134,6 +139,7 @@ export async function submitLevelSolution(
     if (text.includes("You gave an answer too recently")) {
         return "too-recent";
     }
+    console.log(text);
     return "ok";
 }
 
