@@ -109,12 +109,11 @@ export async function submitLevelSolution(
 ): Promise<"ok" | "incorrect" | "too-recent" | "error"> {
     const spinner = createSpinner("Submitting solution ...").start();
 
-    // TODO: this always says that the answer is correct.
     const response = await fetch(
         URL_TEMPLATES.SUBMIT.replace("{year}", year.toString()).replace("{day}", day.toString()),
         {
             method: "POST",
-            body: JSON.stringify({
+            body: new URLSearchParams({
                 level: part.toString(),
                 answer: result,
             }),
@@ -139,7 +138,6 @@ export async function submitLevelSolution(
     if (text.includes("You gave an answer too recently")) {
         return "too-recent";
     }
-    console.log(text);
     return "ok";
 }
 
