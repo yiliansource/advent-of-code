@@ -6,7 +6,7 @@ import { hideBin } from "yargs/helpers";
 import { getLevelPrompt, hasSession, hasSessionToken, submitLevelSolution } from "./lib/agent.js";
 import { makeBanner } from "./lib/banner.js";
 import { dynamicImportDayScript, getEnvironmentDir, getRootDir } from "./lib/paths.js";
-import { InputParser, PartSolver } from "./lib/types.js";
+import { PartSolver } from "./lib/types.js";
 import { withPerformance } from "./lib/performance.js";
 import { formatDuration } from "./lib/format.js";
 import "dotenv/config";
@@ -57,20 +57,14 @@ if (submit && !(await hasSession())) {
 console.log(`Solving ${argv.year}/${argv.day} ...`);
 console.log();
 
-const parseInput = await dynamicImportDayScript<InputParser<unknown>>(argv.year, argv.day, "parser.ts");
-const rawInput = fs.readFileSync(path.join(getEnvironmentDir(argv.year, argv.day), "input.txt"), "utf-8");
-const parsedInput = parseInput?.(rawInput) ?? rawInput;
+const input = fs.readFileSync(path.join(getEnvironmentDir(argv.year, argv.day), "input.txt"), "utf-8");
 
 for (const part of argv.parts) {
-    const partSolver = await dynamicImportDayScript<PartSolver<unknown, unknown>>(
-        argv.year,
-        argv.day,
-        `part${part}.ts`
-    );
+    const partSolver = await dynamicImportDayScript<PartSolver<unknown>>(argv.year, argv.day, `part${part}.ts`);
     if (partSolver === undefined) {
         console.warn(chalk.yellow`No solver for part ${part} was registered.`);
     } else {
-        const [result, duration] = withPerformance(() => partSolver(parsedInput));
+        const [result, duration] = withPerformance(() => partSolver(input));
         console.log(chalk`Part ${part}: {yellow ${result}} {gray (${formatDuration(duration)})}`);
 
         // TODO: add to chart in readme

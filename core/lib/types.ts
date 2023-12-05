@@ -1,2 +1,1 @@
-export type InputParser<T> = (input: string) => T;
-export type PartSolver<I, O> = (input: I) => O;
+export type PartSolver<O> = (input: string) => O;

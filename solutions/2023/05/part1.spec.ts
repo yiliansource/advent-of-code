@@ -1,6 +1,4 @@
 import { expect } from "chai";
-
-import parser from "./parser.js";
 import solver from "./part1.js";
 
 const input = `seeds: 79 14 55 13
@@ -38,6 +36,6 @@ humidity-to-location map:
 56 93 4`;
 
 export default function (): void {
-    expect(solver(parser("seeds: 1 2 3\n\nseed-to-location map:\n3 1 2"))).to.equal(3);
-    expect(solver(parser(input))).to.equal(35);
+    expect(solver("seeds: 1 2 3\n\nseed-to-location map:\n3 1 2")).to.equal(3);
+    expect(solver(input)).to.equal(35);
 }
