@@ -13,7 +13,10 @@ const input = `467..114..
 ...$.*....
 .664.598..`;
 
-export default function (): void {
+export function simpleCases(): void {
     expect(solver("22*..32.#1")).to.equal(23);
+}
+
+export function sampleInput(): void {
     expect(solver(input)).to.equal(4361);
 }

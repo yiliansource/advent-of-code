@@ -35,7 +35,10 @@ humidity-to-location map:
 60 56 37
 56 93 4`;
 
-export default function (): void {
+export function simpleCases(): void {
     expect(solver("seeds: 1 2 3\n\nseed-to-location map:\n3 1 2")).to.equal(3);
+}
+
+export function sampleInput(): void {
     expect(solver(input)).to.equal(35);
 }

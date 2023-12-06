@@ -10,6 +10,6 @@ xtwone3four
 zoneight234
 7pqrstsixteen`;
 
-export default function (): void {
+export function sampleInput(): void {
     expect(solver(input)).to.equal(281);
 }

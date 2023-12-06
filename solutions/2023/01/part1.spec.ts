@@ -7,6 +7,6 @@ pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet`;
 
-export default function (): void {
+export function sampleInput(): void {
     expect(solver(input)).to.equal(142);
 }

@@ -35,17 +35,22 @@ humidity-to-location map:
 60 56 37
 56 93 4`;
 
-export default function (): void {
+export function testIntersect() {
     expect(intersect([0, 4], [1, 2])).to.eql([1, 2]);
+
     expect(intersect([0, 4], [-2, 1])).to.eql([0, 1]);
     expect(intersect([0, 4], [2, 6])).to.eql([2, 4]);
+}
 
+export function testDifference() {
     expect(difference([0, 4], [1, 2])).to.eql([
         [0, 0],
         [3, 4],
     ]);
     expect(difference([0, 4], [-2, 2])).to.eql([[3, 4]]);
     expect(difference([0, 4], [3, 6])).to.eql([[0, 2]]);
+}
 
+export function sampleInput(): void {
     expect(solver(input)).to.equal(46);
 }
