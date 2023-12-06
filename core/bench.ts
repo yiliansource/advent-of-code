@@ -9,7 +9,7 @@ import { formatDuration } from "./lib/format.js";
 import { dynamicImportDayScript, getEnvironmentDir } from "./lib/paths.js";
 import { withPerformance } from "./lib/performance.js";
 import { sleep } from "./lib/promise.js";
-import { InputParser, PartSolver } from "./lib/types.js";
+import { PartSolver } from "./lib/types.js";
 import "dotenv/config";
 
 makeBanner();
@@ -45,23 +45,17 @@ const argv = yargs(hideBin(process.argv))
 console.log(`Solving ${argv.year}/${argv.day} ...`);
 console.log();
 
-const parseInput = await dynamicImportDayScript<InputParser<unknown>>(argv.year, argv.day, "parser.ts");
-const rawInput = fs.readFileSync(path.join(getEnvironmentDir(argv.year, argv.day), "input.txt"), "utf-8");
-const parsedInput = parseInput?.(rawInput) ?? rawInput;
+const input = fs.readFileSync(path.join(getEnvironmentDir(argv.year, argv.day), "input.txt"), "utf-8");
 
 for (const part of argv.parts) {
-    const partSolver = await dynamicImportDayScript<PartSolver<unknown, unknown>>(
-        argv.year,
-        argv.day,
-        `part${part}.ts`
-    );
+    const partSolver = await dynamicImportDayScript<PartSolver<unknown>>(argv.year, argv.day, `part${part}.ts`);
     if (partSolver === undefined) {
         console.warn(chalk.yellow`No solver for part ${part} was registered.`);
     } else {
         let total = 0;
         const spinner = ora({ text: `Benchmarking part ${part} ...` }).start();
         for (let i = 0; i < argv.iterations; i++) {
-            const [_, duration] = withPerformance(() => partSolver(parsedInput));
+            const [_, duration] = withPerformance(() => partSolver(input));
             total += duration;
 
             await sleep(1);

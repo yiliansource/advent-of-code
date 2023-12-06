@@ -1,6 +1,6 @@
-export function formatDuration(ms: number): string {
+export function formatDuration(ms: number, decimals = 4): string {
     if (ms > 500) {
-        return (ms / 1000).toFixed(2) + "s";
+        return (ms / 1000).toFixed(decimals) + "s";
     }
-    return ms.toFixed(2) + "ms";
+    return ms.toFixed(decimals) + "ms";
 }
