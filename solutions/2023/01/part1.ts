@@ -1,5 +1,6 @@
-export default function (input: ReturnType<typeof import("./parser.js").default>): number {
+export default function (input: string): number {
     return input
+        .split("\n")
         .map((line) => {
             let matches = line.match(/\d/g);
             if (!matches) {

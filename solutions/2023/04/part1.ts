@@ -1,5 +1,12 @@
-export default function (input: ReturnType<typeof import("./parser.js").default>): number {
+export default function (input: string): number {
     return input
+        .split("\n")
+        .map((line) => {
+            return line
+                .split(/: +/)[1]
+                .split(/ +\| +/)
+                .map((parts) => parts.split(/ +/).map(Number));
+        })
         .map(([winning, mine]) => {
             let count = 0;
             const map: Record<number, boolean> = {};

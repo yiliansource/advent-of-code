@@ -1,5 +1,6 @@
-export default function (input: ReturnType<typeof import("./parser.js").default>): number {
+export default function (input: string): number {
     return input
+        .split("\n")
         .map((line) => {
             let matches = Array.from(line.matchAll(/(?=(\d|one|two|three|four|five|six|seven|eight|nine))/g)).map(
                 (m) => m[1]
@@ -14,7 +15,7 @@ export default function (input: ReturnType<typeof import("./parser.js").default>
         .reduce((acc, cur) => acc + cur, 0);
 }
 
-function wordDigitToDigit(word = ""): string {
+function wordDigitToDigit(word: string): string {
     if (/\d/.test(word)) {
         return word;
     }

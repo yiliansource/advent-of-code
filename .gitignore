@@ -1,3 +1,6 @@
 node_modules/
 
 .env
+
+# make sure inputs are not commited
+input.txt

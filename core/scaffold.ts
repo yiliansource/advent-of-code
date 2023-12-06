@@ -28,6 +28,16 @@ const argv = yargs(hideBin(process.argv))
         default: new Date().getDate(),
         description: "The day to target.",
     })
+    .option("fetch-only", {
+        type: "boolean",
+        default: false,
+        description: "Whether to only fetch the input and prompt.",
+    })
+    .option("skip-wait", {
+        type: "boolean",
+        default: false,
+        description: "Whether to skip the cooldown until the level unlocks.",
+    })
     .parseSync();
 
 const threshold = DateTime.fromObject({
@@ -36,7 +46,7 @@ const threshold = DateTime.fromObject({
     day: argv.day,
     hour: 6,
 });
-if (DateTime.utc() < threshold) {
+if (!argv.skipWait && DateTime.utc() < threshold) {
     const spinner = ora({ text: `Waiting for level to unlock!`, spinner: "star2", color: "yellow" }).start();
     while (DateTime.now() < threshold) {
         const diff = threshold.diff(DateTime.now(), ["hours", "minutes", "seconds"]).toObject();
@@ -52,30 +62,33 @@ const rootDir = getRootDir();
 const envDir = getEnvironmentDir(argv.year, argv.day);
 
 const [_, duration] = await withPerformanceAsync(async () => {
-    console.log(`Scaffolding an environment for ${argv.year}/${argv.day} ...`);
+    if (!argv.fetchOnly) {
+        console.log(`Scaffolding an environment for ${argv.year}/${argv.day} ...`);
+        if (fs.existsSync(getEnvironmentDir(argv.year, argv.day))) {
+            console.error(
+                chalk.red`Could not scaffold an environment for ${argv.year}/${argv.day} - make sure it does not exist yet.`
+            );
+            console.log();
 
-    if (fs.existsSync(getEnvironmentDir(argv.year, argv.day))) {
-        console.error(
-            chalk.red`Could not scaffold an environment for ${argv.year}/${argv.day} - make sure it does not exist yet.`
-        );
-        console.log();
+            process.exit(1);
+        }
 
-        process.exit(1);
-    }
+        fs.mkdirSync(envDir, { recursive: true });
+        // console.log(chalk.gray`Created environment for ${argv.year}/${argv.day}.`)
 
-    fs.mkdirSync(envDir, { recursive: true });
-    // console.log(chalk.gray`Created environment for ${argv.year}/${argv.day}.`)
+        const templatePath = path.join(rootDir, "templates/day");
+        for (const templateFile of fs.readdirSync(templatePath)) {
+            const srcPath = path.join(templatePath, templateFile);
+            const dstPath = path.join(envDir, templateFile);
+            fs.copyFileSync(srcPath, dstPath);
 
-    const templatePath = path.join(rootDir, "templates/day");
-    for (const templateFile of fs.readdirSync(templatePath)) {
-        const srcPath = path.join(templatePath, templateFile);
-        const dstPath = path.join(envDir, templateFile);
-        fs.copyFileSync(srcPath, dstPath);
-
-        console.log(chalk.gray`Created ${path.relative(rootDir, dstPath)}.`);
+            console.log(chalk.gray`Created ${path.relative(rootDir, dstPath)}.`);
+        }
     }
 
     if (hasSessionToken()) {
+        console.log(`Fetching data ...`);
+
         const input = await getLevelInput(argv.year, argv.day);
         if (input !== undefined) {
             const dstPath = path.join(envDir, "input.txt");
@@ -92,6 +105,10 @@ const [_, duration] = await withPerformanceAsync(async () => {
             console.log(chalk.gray`Downloaded prompt to ${path.relative(rootDir, dstPath)}.`);
         } else {
             console.warn(chalk.yellow("Could not fetch the puzzle prompt."));
+        }
+    } else {
+        if (argv.fetchOnly) {
+            console.error(chalk.red("Cannot fetch anything if no session token is provided."));
         }
     }
 

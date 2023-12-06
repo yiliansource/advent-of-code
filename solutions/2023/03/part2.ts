@@ -1,5 +1,6 @@
-export default function (input: ReturnType<typeof import("./parser.js").default>): number {
-    let gearIndices = Array.from(input.cells.entries())
+export default function (input: string): number {
+    const plan = parse(input);
+    let gearIndices = Array.from(plan.cells.entries())
         .filter(([index, value]) => value === "*")
         .map(([index, value]) => index);
 
@@ -10,22 +11,22 @@ export default function (input: ReturnType<typeof import("./parser.js").default>
         visited.push(gearIndex);
 
         const adjacentNumbers: number[] = [];
-        for (let adjacent of getAdjacentIndices(gearIndex, input.width, input.height)) {
+        for (let adjacent of getAdjacentIndices(gearIndex, plan.width, plan.height)) {
             if (visited.includes(adjacent)) {
                 continue;
             }
 
-            const cell = input.cells.get(adjacent)!;
+            const cell = plan.cells.get(adjacent)!;
             if (/\d/.test(cell)) {
                 let numberString = cell;
-                const x = adjacent % input.width;
-                for (let i = -1; x + i >= 0 && /\d/.test(input.cells.get(adjacent + i)!); i--) {
+                const x = adjacent % plan.width;
+                for (let i = -1; x + i >= 0 && /\d/.test(plan.cells.get(adjacent + i)!); i--) {
                     visited.push(adjacent + i);
-                    numberString = input.cells.get(adjacent + i)! + numberString;
+                    numberString = plan.cells.get(adjacent + i)! + numberString;
                 }
-                for (let i = 1; x + i < input.width && /\d/.test(input.cells.get(adjacent + i)!); i++) {
+                for (let i = 1; x + i < plan.width && /\d/.test(plan.cells.get(adjacent + i)!); i++) {
                     visited.push(adjacent + i);
-                    numberString = numberString + input.cells.get(adjacent + i)!;
+                    numberString = numberString + plan.cells.get(adjacent + i)!;
                 }
 
                 adjacentNumbers.push(Number(numberString));
@@ -38,6 +39,28 @@ export default function (input: ReturnType<typeof import("./parser.js").default>
     }
 
     return sum;
+}
+
+function parse(input: string): Plan {
+    const cells = new Map<number, string>();
+    const lines = input.split("\n");
+    for (let row = 0; row < lines.length; row++) {
+        for (let col = 0; col < lines[row].length; col++) {
+            const cell = lines[row][col];
+            cells.set(row * lines[row].length + col, cell);
+        }
+    }
+    return {
+        cells,
+        width: lines[0].length,
+        height: lines.length,
+    };
+}
+
+interface Plan {
+    cells: Map<number, string>;
+    width: number;
+    height: number;
 }
 
 function getAdjacentIndices(index: number, width: number, height: number): number[] {

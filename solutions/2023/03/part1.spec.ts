@@ -1,6 +1,5 @@
 import { expect } from "chai";
 
-import parser from "./parser.js";
 import solver from "./part1.js";
 
 const input = `467..114..
@@ -15,6 +14,6 @@ const input = `467..114..
 .664.598..`;
 
 export default function (): void {
-    expect(solver(parser("22*..32.#1"))).to.equal(23);
-    expect(solver(parser(input))).to.equal(4361);
+    expect(solver("22*..32.#1")).to.equal(23);
+    expect(solver(input)).to.equal(4361);
 }
