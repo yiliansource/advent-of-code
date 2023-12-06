@@ -4,28 +4,30 @@ import ora from "ora";
 import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import * as runner from "./lib/runner.js";
 import { makeBanner } from "./lib/banner.js";
 import { formatDuration } from "./lib/format.js";
-import { dynamicImportDayScript, getEnvironmentDir } from "./lib/paths.js";
-import { withPerformance } from "./lib/performance.js";
+import { getDayDir } from "./lib/paths.js";
+import { readPerformanceTable, withPerformance, writePerformanceTable } from "./lib/performance.js";
 import { sleep } from "./lib/promise.js";
-import { PartSolver } from "./lib/types.js";
 import "dotenv/config";
 
 makeBanner();
 
 const argv = yargs(hideBin(process.argv))
-    .option("year", {
+    .option("years", {
         type: "number",
-        alias: ["y"],
-        default: new Date().getFullYear(),
-        description: "The year to target.",
+        alias: ["year", "y"],
+        array: true,
+        default: [new Date().getFullYear()],
+        description: "The year(s) to target.",
     })
-    .option("day", {
+    .option("days", {
         type: "number",
-        alias: ["d"],
-        default: new Date().getDate(),
-        description: "The day to target.",
+        alias: ["day", "d"],
+        array: true,
+        default: [new Date().getDate()],
+        description: "The day(s) to target.",
     })
     .option("parts", {
         type: "number",
@@ -42,29 +44,43 @@ const argv = yargs(hideBin(process.argv))
     })
     .parseSync();
 
-console.log(`Solving ${argv.year}/${argv.day} ...`);
-console.log();
+await runner.forEachYear(async (year) => {
+    const performanceTable = readPerformanceTable(year);
 
-const input = fs.readFileSync(path.join(getEnvironmentDir(argv.year, argv.day), "input.txt"), "utf-8");
+    for (const day of argv.days) {
+        console.group(chalk.black`{yellow ${day.toString().padStart(2, "0")}}/12/${year.toString()}`);
 
-for (const part of argv.parts) {
-    const partSolver = await dynamicImportDayScript<PartSolver<unknown>>(argv.year, argv.day, `part${part}.ts`);
-    if (partSolver === undefined) {
-        console.warn(chalk.yellow`No solver for part ${part} was registered.`);
-    } else {
-        let total = 0;
-        const spinner = ora({ text: `Benchmarking part ${part} ...` }).start();
-        for (let i = 0; i < argv.iterations; i++) {
-            const [_, duration] = withPerformance(() => partSolver(input));
-            total += duration;
+        const input = fs.readFileSync(path.join(getDayDir(year, day), "input.txt"), "utf-8");
 
-            await sleep(1);
+        for (const part of argv.parts) {
+            console.group(chalk.black`Part {yellow ${part}}:`);
+
+            if (!runner.hasSolver(year, day, part)) {
+                console.log(chalk.black`< no solver found >`);
+            } else {
+                let total = 0;
+                const spinner = ora({ text: `Benchmarking ...` }).start();
+                for (let i = 0; i < argv.iterations; i++) {
+                    const [_, duration] = await runner.solve(year, day, part, input);
+                    total += duration;
+
+                    await sleep(1);
+                }
+                spinner.stop();
+                total /= argv.iterations;
+                console.log(chalk.cyan`${formatDuration(total)}`);
+
+                performanceTable[day - 1][part - 1] = total;
+            }
+
+            console.groupEnd();
         }
-        spinner.stop();
-        total /= argv.iterations;
-        console.log(chalk`Part ${part}: ~${formatDuration(total)}`);
+
+        console.groupEnd();
     }
-}
+
+    writePerformanceTable(year, performanceTable);
+}, argv.years);
 
 console.log();
 process.exit(0);

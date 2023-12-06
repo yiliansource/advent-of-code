@@ -2,23 +2,25 @@ import chalk from "chalk";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { makeBanner } from "./lib/banner.js";
-import { dynamicImportDayScript } from "./lib/paths.js";
 import "dotenv/config";
+import * as runner from "./lib/runner.js";
 
 makeBanner();
 
 const argv = yargs(hideBin(process.argv))
-    .option("year", {
+    .option("years", {
         type: "number",
-        alias: ["y"],
-        default: new Date().getFullYear(),
-        description: "The year to target.",
+        alias: ["year", "y"],
+        array: true,
+        default: [new Date().getFullYear()],
+        description: "The year(s) to target.",
     })
-    .option("day", {
+    .option("days", {
         type: "number",
-        alias: ["d"],
-        default: new Date().getDate(),
-        description: "The day to target.",
+        alias: ["day", "d"],
+        array: true,
+        default: [new Date().getDate()],
+        description: "The day(s) to target.",
     })
     .option("parts", {
         type: "number",
@@ -29,37 +31,39 @@ const argv = yargs(hideBin(process.argv))
     })
     .parseSync();
 
-console.log(`Testing ${argv.year}/${argv.day} ...`);
-console.log();
-
 const stats = {
     passed: 0,
     failed: 0,
     skipped: 0,
 };
 
-for (const part of argv.parts) {
-    const tester = await dynamicImportDayScript<() => void>(argv.year, argv.day, `part${part}.spec.ts`);
-    if (tester) {
-        console.group(`Part ${part}:`);
-        try {
-            tester();
-
-            console.log(chalk`{green ✓} All assertions passed.`);
-            stats.passed++;
-        } catch (e) {
-            if (e instanceof Error) {
-                console.error(chalk`{red ✗} ${e.message}`);
+await runner.forEachPart(
+    async (year, day, part) => {
+        if (!runner.hasTester(year, day, part)) {
+            console.log(chalk.black`< no tester found >`);
+            stats.skipped++;
+        } else {
+            for await (const result of runner.test(year, day, part)) {
+                if (!result.error) {
+                    console.log(chalk`{green ✓} ${result.methodName}`);
+                    stats.passed++;
+                }
+                if (!!result.error && result.error instanceof Error) {
+                    console.group(chalk`{red ✗} ${result.methodName}`);
+                    console.error(result.error.message);
+                    console.groupEnd();
+                    stats.failed++;
+                }
             }
-            stats.failed++;
         }
-        console.groupEnd();
-    } else {
-        stats.skipped++;
-    }
-}
+    },
+    argv.years,
+    argv.days,
+    argv.parts
+);
 
-console.log(chalk.gray`(${stats.passed} passed, ${stats.failed} failed, ${stats.skipped} skipped)`);
+console.log();
+console.log(chalk.black`(${stats.passed} passed, ${stats.failed} failed, ${stats.skipped} skipped)`);
 
 console.log();
 process.exit(stats.failed > 0 ? 1 : 0);

@@ -5,7 +5,7 @@ import yargs from "yargs";
 import fs from "fs";
 import { hideBin } from "yargs/helpers";
 import { makeBanner } from "./lib/banner.js";
-import { getEnvironmentDir, getRootDir } from "./lib/paths.js";
+import { getDayDir, getRootDir } from "./lib/paths.js";
 import { withPerformanceAsync } from "./lib/performance.js";
 import { sleep } from "./lib/promise.js";
 import path from "path";
@@ -59,12 +59,12 @@ if (!argv.skipWait && DateTime.utc() < threshold) {
 }
 
 const rootDir = getRootDir();
-const envDir = getEnvironmentDir(argv.year, argv.day);
+const envDir = getDayDir(argv.year, argv.day);
 
 const [_, duration] = await withPerformanceAsync(async () => {
     if (!argv.fetchOnly) {
         console.log(`Scaffolding an environment for ${argv.year}/${argv.day} ...`);
-        if (fs.existsSync(getEnvironmentDir(argv.year, argv.day))) {
+        if (fs.existsSync(getDayDir(argv.year, argv.day))) {
             console.error(
                 chalk.red`Could not scaffold an environment for ${argv.year}/${argv.day} - make sure it does not exist yet.`
             );
