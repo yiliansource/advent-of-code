@@ -38,10 +38,11 @@ export function readPerformanceTable(year: number): PerformanceTable {
         tableFileText.indexOf(tableBeginMarker) + tableBeginMarker.length + 1,
         tableFileText.indexOf(tableEndMarker) - 1
     );
+    console.log(tableText);
     return tableText
         .split("\n")
         .slice(2)
-        .map((line, i) => {
+        .map((line) => {
             return line
                 .split(/ *\| */g)
                 .map((c) => (c ? parseDuration(c) : 0))
