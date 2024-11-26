@@ -76,15 +76,20 @@ await runner.forEachDay(
                             case "ok":
                                 console.log(chalk.green("That solution was correct!"));
 
-                                const prompt = await getLevelPrompt(year, day);
-                                if (prompt !== undefined) {
-                                    const dstPath = path.join(getDayDir(year, day), "readme.md");
-                                    fs.writeFileSync(dstPath, prompt.join("\n\n---\n\n"));
-                                    console.log(
-                                        chalk.gray`Downloaded new prompt to ${path.relative(getRootDir(), dstPath)}.`
-                                    );
-                                } else {
-                                    console.warn(chalk.yellow("Could not fetch the puzzle new prompt."));
+                                if (part !== 2) {
+                                    const prompt = await getLevelPrompt(year, day);
+                                    if (prompt !== undefined) {
+                                        const dstPath = path.join(getDayDir(year, day), "readme.md");
+                                        fs.writeFileSync(dstPath, prompt.join("\n\n---\n\n"));
+                                        console.log(
+                                            chalk.gray`Downloaded new prompt to ${path.relative(
+                                                getRootDir(),
+                                                dstPath
+                                            )}.`
+                                        );
+                                    } else {
+                                        console.warn(chalk.yellow("Could not fetch the puzzle new prompt."));
+                                    }
                                 }
                                 break;
                             case "incorrect":

@@ -41,7 +41,7 @@ export function readPerformanceTable(year: number): PerformanceTable {
     return tableText
         .split("\n")
         .slice(2)
-        .map((line, i) => {
+        .map((line) => {
             return line
                 .split(/ *\| */g)
                 .map((c) => (c ? parseDuration(c) : 0))

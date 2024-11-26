@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 import { getDayDir } from "./paths.js";
 import { withPerformance } from "./performance.js";
-import { sleep } from "./promise.js";
 
 export type ScriptType = "solver" | "tester";
 
@@ -33,7 +32,7 @@ export async function forEachDay(
 ): Promise<void> {
     await forEachYear(async (year) => {
         for (const day of days) {
-            console.group(chalk.dim.black`{yellow ${day.toString().padStart(2, "0")}}/12/${year.toString()}`);
+            console.group(chalk.black`{yellow ${day.toString().padStart(2, "0")}}/12/${year.toString()}`);
             await action(year, day);
             console.groupEnd();
         }

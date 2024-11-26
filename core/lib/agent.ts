@@ -133,7 +133,7 @@ export async function submitLevelSolution(
     }
 
     const text = await response.text();
-    if (text.includes("That's not the right answer.")) {
+    if (text.includes("That's not the right answer")) {
         return "incorrect";
     }
     if (text.includes("You gave an answer too recently")) {
