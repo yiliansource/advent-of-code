@@ -34,13 +34,14 @@ export async function getSessionInfo(): Promise<SessionInfo | undefined> {
 
     const document = NodeHtmlParser.parse(html);
     const userNode = document.querySelector("nav + .user");
+
+    spinner.stop();
+
     if (!userNode) {
         return undefined;
     }
 
-    spinner.stop();
-
-    const username = userNode.innerText.match(/(.+) \d+\*/)?.[1] ?? "<anonymous>";
+    const username = userNode.childNodes[0].innerText.trim();
 
     return {
         username,

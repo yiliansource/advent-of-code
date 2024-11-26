@@ -1,14 +1,13 @@
+import chalk from "chalk";
+import "dotenv/config";
 import fs from "fs";
 import path from "path";
-import chalk from "chalk";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { getLevelPrompt, hasSession, hasSessionToken, submitLevelSolution } from "./lib/agent.js";
 import { makeBanner } from "./lib/banner.js";
-import { getDayDir, getRootDir } from "./lib/paths.js";
-import { withPerformance, withPerformanceAsync } from "./lib/performance.js";
 import { formatDuration } from "./lib/format.js";
-import "dotenv/config";
+import { getDayDir, getRootDir } from "./lib/paths.js";
 import * as runner from "./lib/runner.js";
 
 makeBanner();
