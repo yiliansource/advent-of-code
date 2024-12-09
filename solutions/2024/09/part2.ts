@@ -1,50 +1,70 @@
 export default function (input: string): number {
-    let blocks: (number | null)[] = [];
-    const spaces: Record<number, number> = {};
+    let blocks: (number | null)[] = input
+        .split("")
+        .map(Number)
+        .flatMap((d, i) => Array(d).fill(i % 2 === 0 ? i / 2 : null));
 
-    for (let i = 0; i < input.length; i++) {
-        const d = Number(input[i]);
-        const s = i % 2 === 1;
-        if (s && d > 0) spaces[blocks.length] = d;
+    function findBlockFirst(v: number | null, offset = 0): [number, number] | null {
+        for (let i = offset; i < blocks.length; i++) {
+            if (blocks[i] === v) {
+                for (let j = i + 1; j <= blocks.length; j++) {
+                    if (blocks[j] !== v) {
+                        return [i, j];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    function findBlockLast(v: number | null, offset = 0): [number, number] | null {
+        for (let i = blocks.length - 1 - offset; i >= 0; i--) {
+            if (blocks[i] === v) {
+                for (let j = i - 1; j >= -1; j--) {
+                    if (blocks[j] !== v) {
+                        return [j + 1, i + 1];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    function findFreeSpace(length: number): [number, number] | null {
+        let offset = 0;
+        do {
+            const query = findBlockFirst(null, offset);
+            if (!query) return null;
 
-        blocks.push(...Array(d).fill(!s ? i / 2 : null));
+            const [start, end] = query;
+            if (end - start >= length) {
+                return [start, start + length];
+            }
+
+            offset = end;
+        } while (offset < blocks.length);
+
+        return null;
     }
 
     let nextId = Math.floor(input.length / 2);
 
     do {
-        const lastFileEnd = blocks.lastIndexOf(nextId) + 1;
-        if (lastFileEnd <= 0) break;
+        const [fileStart, fileEnd] = findBlockLast(nextId)!;
+        const fileLength = fileEnd - fileStart;
 
-        let lastFileStart = lastFileEnd - 1;
-        while (blocks[lastFileStart - 1] === nextId) lastFileStart--;
-        const lastFileLength = lastFileEnd - lastFileStart;
-
-        console.log("moving", nextId);
-
-        for (const key in spaces) {
-            const freeIndex = Number(key);
-            const freeLength = spaces[key];
-
-            if (freeLength >= lastFileLength) {
+        const query = findFreeSpace(fileLength);
+        if (!!query) {
+            const [freeStart, freeEnd] = query;
+            if (freeEnd <= fileStart) {
                 blocks.splice(
-                    freeIndex,
-                    lastFileLength,
-                    ...blocks.splice(lastFileStart, lastFileLength, ...Array(lastFileLength).fill(null))
+                    freeStart,
+                    fileLength,
+                    ...blocks.splice(fileStart, fileLength, ...Array(fileLength).fill(null))
                 );
-
-                // console.log(blocks.map((v) => v ?? ".").join(""));
-
-                const newSpace = spaces[freeIndex] - lastFileLength;
-                if (newSpace > 0) spaces[freeIndex + lastFileLength] = newSpace;
-                delete spaces[freeIndex];
-
-                break;
             }
         }
 
         nextId--;
-    } while (nextId >= 0);
+    } while (nextId > 0);
 
     return blocks.map(Number).reduce((acc, cur, pos) => acc + cur * pos, 0);
 }
