@@ -58,8 +58,10 @@ export async function forEachPart(
     );
 }
 
-export function getInput(year: number, day: number): string {
-    return fs.readFileSync(path.join(getDayDir(year, day), "input.txt"), "utf-8");
+export function getInput(year: number, day: number): string | null {
+    const inputFile = path.join(getDayDir(year, day), "input.txt");
+    if (!fs.existsSync(inputFile)) return null;
+    return fs.readFileSync(inputFile, "utf-8");
 }
 
 export function hasSolver(year: number, day: number, part: number): boolean {

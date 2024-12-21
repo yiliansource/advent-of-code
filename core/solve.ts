@@ -60,6 +60,11 @@ if (submit && !(await hasSession())) {
 await runner.forEachDay(
     async (year, day) => {
         const input = runner.getInput(year, day);
+        if (!input) {
+            console.error(chalk.red("No input available."));
+            return;
+        }
+
         for (const part of argv.parts) {
             console.group(chalk.black`Part {yellow ${part}}:`);
 
