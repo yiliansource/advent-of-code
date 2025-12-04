@@ -1,16 +1,16 @@
 import chalk from "chalk";
+import "dotenv/config";
 import fs from "fs";
 import ora from "ora";
 import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import * as runner from "./lib/runner.js";
 import { makeBanner } from "./lib/banner.js";
 import { formatDuration } from "./lib/format.js";
 import { getDayDir } from "./lib/paths.js";
-import { readPerformanceTable, withPerformance, writePerformanceTable } from "./lib/performance.js";
+import { readPerformanceTable, writePerformanceTable } from "./lib/performance.js";
 import { sleep } from "./lib/promise.js";
-import "dotenv/config";
+import * as runner from "./lib/runner.js";
 
 makeBanner();
 
@@ -58,19 +58,25 @@ await runner.forEachYear(async (year) => {
             if (!runner.hasSolver(year, day, part)) {
                 console.log(chalk.black`< no solver found >`);
             } else {
-                let total = 0;
+                const runtimes: number[] = [];
                 const spinner = ora({ text: `Benchmarking ...` }).start();
                 for (let i = 0; i < argv.iterations; i++) {
                     const [_, duration] = await runner.solve(year, day, part, input);
-                    total += duration;
+                    runtimes.push(duration);
 
                     await sleep(1);
                 }
                 spinner.stop();
-                total /= argv.iterations;
-                console.log(chalk.cyan`${formatDuration(total)}`);
 
-                performanceTable[day - 1][part - 1] = total;
+                const mean = runtimes.reduce((acc, cur) => acc + cur, 0) / runtimes.length;
+                const stdev = Math.sqrt(runtimes.reduce((acc, cur) => acc + (cur - mean) ** 2) / (runtimes.length - 1));
+                console.log(
+                    chalk.cyan("μ = " + formatDuration(mean)) +
+                        " " +
+                        chalk.dim.gray("(σ = " + formatDuration(stdev) + ")")
+                );
+
+                performanceTable[day - 1][part - 1] = mean;
             }
 
             console.groupEnd();
