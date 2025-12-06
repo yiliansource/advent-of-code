@@ -3,6 +3,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { makeBanner } from "./lib/banner.js";
 import "dotenv/config";
+import * as logger from "./lib/logger.js";
 import * as runner from "./lib/runner.js";
 
 makeBanner();
@@ -40,17 +41,17 @@ const stats = {
 await runner.forEachPart(
     async (year, day, part) => {
         if (!runner.hasTester(year, day, part)) {
-            console.log(chalk.black`< no tester found >`);
+            logger.log(chalk.black`< no tester found >`);
             stats.skipped++;
         } else {
             for await (const result of runner.test(year, day, part)) {
                 if (!result.error) {
-                    console.log(chalk`{green ✓} ${result.methodName}`);
+                    logger.success(result.methodName);
                     stats.passed++;
                 }
                 if (!!result.error && result.error instanceof Error) {
                     console.group(chalk`{red ✗} ${result.methodName}`);
-                    console.error(result.error.message);
+                    logger.error(result.error.message);
                     console.groupEnd();
                     stats.failed++;
                 }
@@ -62,8 +63,8 @@ await runner.forEachPart(
     argv.parts
 );
 
-console.log();
-console.log(chalk.black`(${stats.passed} passed, ${stats.failed} failed, ${stats.skipped} skipped)`);
+logger.log();
+logger.log(chalk.black`(${stats.passed} passed, ${stats.failed} failed, ${stats.skipped} skipped)`);
 
-console.log();
+logger.log();
 process.exit(stats.failed > 0 ? 1 : 0);

@@ -7,6 +7,7 @@ import { hideBin } from "yargs/helpers";
 import { getLevelPrompt, hasSession, hasSessionToken, submitLevelSolution } from "./lib/agent.js";
 import { makeBanner } from "./lib/banner.js";
 import { formatDuration } from "./lib/format.js";
+import * as logger from "./lib/logger.js";
 import { getDayDir, getRootDir } from "./lib/paths.js";
 import * as runner from "./lib/runner.js";
 
@@ -66,27 +67,27 @@ await runner.forEachDay(
         }
 
         for (const part of argv.parts) {
-            console.group(chalk.black`Part {yellow ${part}}:`);
+            logger.group(chalk.gray`Part {yellow ${part}}:`);
 
             if (!runner.hasSolver(year, day, part)) {
-                console.log(chalk.black`< no solver found >`);
+                logger.log(chalk.gray`< no solver found >`);
             } else {
                 const [result, duration] = await runner.solve(year, day, part, input);
-                console.log(chalk`{yellow ${result}} {gray (${formatDuration(duration)})}`);
+                logger.log(chalk`{yellow ${result}} {gray (${formatDuration(duration)})}`);
 
                 if (submit) {
                     try {
                         const response = await submitLevelSolution(year, day, part, String(result));
                         switch (response) {
                             case "ok":
-                                console.log(chalk.green("That solution was correct!"));
+                                logger.log(chalk.green("That solution was correct!"));
 
                                 if (part !== 2) {
                                     const prompt = await getLevelPrompt(year, day);
                                     if (prompt !== undefined) {
                                         const dstPath = path.join(getDayDir(year, day), "readme.md");
                                         fs.writeFileSync(dstPath, prompt.join("\n\n---\n\n"));
-                                        console.log(
+                                        logger.log(
                                             chalk.gray`Downloaded new prompt to ${path.relative(
                                                 getRootDir(),
                                                 dstPath
@@ -107,12 +108,12 @@ await runner.forEachDay(
                                 throw new Error("Error while submitting.");
                         }
                     } catch (e) {
-                        console.error(chalk.red("An error occurred while submitting."));
+                        logger.error(chalk.red("An error occurred while submitting."));
                     }
                 }
             }
 
-            console.groupEnd();
+            logger.groupEnd();
         }
     },
     argv.years,

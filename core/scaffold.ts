@@ -12,6 +12,7 @@ import path from "path";
 import { getLevelInput, getLevelPrompt, hasSessionToken } from "./lib/agent.js";
 import { formatDuration } from "./lib/format.js";
 import "dotenv/config";
+import * as logger from "./lib/logger.js";
 
 makeBanner();
 
@@ -63,18 +64,18 @@ const envDir = getDayDir(argv.year, argv.day);
 
 const [_, duration] = await withPerformanceAsync(async () => {
     if (!argv.fetchOnly) {
-        console.log(`Scaffolding an environment for ${argv.year}/${argv.day} ...`);
+        logger.group(`Scaffolding an environment for ${argv.year}/${argv.day} ...`);
         if (fs.existsSync(getDayDir(argv.year, argv.day))) {
-            console.error(
-                chalk.red`Could not scaffold an environment for ${argv.year}/${argv.day} - make sure it does not exist yet.`
+            logger.error(
+                `Could not scaffold an environment for ${argv.year}/${argv.day} - make sure it does not exist yet.`
             );
-            console.log();
+            logger.log();
+            logger.groupEnd();
 
             process.exit(1);
         }
 
         fs.mkdirSync(envDir, { recursive: true });
-        // console.log(chalk.gray`Created environment for ${argv.year}/${argv.day}.`)
 
         const templatePath = path.join(rootDir, "templates/day");
         for (const templateFile of fs.readdirSync(templatePath)) {
@@ -82,40 +83,44 @@ const [_, duration] = await withPerformanceAsync(async () => {
             const dstPath = path.join(envDir, templateFile);
             fs.copyFileSync(srcPath, dstPath);
 
-            console.log(chalk.gray`Created ${path.relative(rootDir, dstPath)}.`);
+            logger.success(chalk.gray`Created ${path.relative(rootDir, dstPath)}.`);
         }
+
+        logger.log();
+        logger.groupEnd();
     }
 
     if (hasSessionToken()) {
-        console.log(`Fetching data ...`);
+        logger.group(`Fetching data ...`);
 
         const input = await getLevelInput(argv.year, argv.day);
         if (input !== undefined) {
             const dstPath = path.join(envDir, "input.txt");
             fs.writeFileSync(dstPath, input);
-            console.log(chalk.gray`Downloaded input to ${path.relative(rootDir, dstPath)}.`);
+            logger.success(chalk.gray`Downloaded input to ${path.relative(rootDir, dstPath)}.`);
         } else {
-            console.warn(chalk.yellow("Could not fetch the puzzle input."));
+            logger.error("Could not fetch the puzzle input.");
         }
 
         const prompt = await getLevelPrompt(argv.year, argv.day);
         if (prompt !== undefined) {
             const dstPath = path.join(envDir, "readme.md");
             fs.writeFileSync(dstPath, prompt.join("\n\n---\n\n"));
-            console.log(chalk.gray`Downloaded prompt to ${path.relative(rootDir, dstPath)}.`);
+            logger.success(chalk.gray`Downloaded prompt to ${path.relative(rootDir, dstPath)}.`);
         } else {
-            console.warn(chalk.yellow("Could not fetch the puzzle prompt."));
+            logger.error("Could not fetch the puzzle prompt.");
         }
     } else {
         if (argv.fetchOnly) {
-            console.error(chalk.red("Cannot fetch anything if no session token is provided."));
+            logger.error(chalk.red("Cannot fetch anything if no session token is provided."));
         }
     }
 
-    // fs.rmSync(dayPath, { recursive: true, force: true });
+    logger.log();
+    logger.groupEnd();
 });
 
-console.log(`Puzzle environment scaffolded in ${formatDuration(duration)}. Happy coding!`);
-console.log();
+logger.success(`Puzzle environment scaffolded in ${formatDuration(duration)}. Happy coding!`);
+logger.log();
 
 process.exit(0);

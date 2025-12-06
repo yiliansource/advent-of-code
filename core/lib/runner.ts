@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { getDayDir } from "./paths.js";
 import { withPerformance } from "./performance.js";
+import * as logger from "./logger.js";
 
 export type ScriptType = "solver" | "tester";
 
@@ -19,9 +20,9 @@ export type PartSolver<T> = (input: string) => T;
 
 export async function forEachYear(action: (year: number) => Promise<void>, years: number[]): Promise<void> {
     for (const year of years) {
-        console.group(chalk.black`Advent of Code {yellow ${year}}`);
+        logger.group(chalk.black`Advent of Code {yellow ${year}}`);
         await action(year);
-        console.groupEnd();
+        logger.groupEnd();
     }
 }
 
@@ -32,9 +33,9 @@ export async function forEachDay(
 ): Promise<void> {
     await forEachYear(async (year) => {
         for (const day of days) {
-            console.group(chalk.black`{yellow ${day.toString().padStart(2, "0")}}/12/${year.toString()}`);
+            logger.group(chalk.black`{yellow ${day.toString().padStart(2, "0")}}/12/${year.toString()}`);
             await action(year, day);
-            console.groupEnd();
+            logger.groupEnd();
         }
     }, years);
 }
@@ -48,9 +49,9 @@ export async function forEachPart(
     await forEachDay(
         async (year, day) => {
             for (const part of parts) {
-                console.group(chalk.black`Part {yellow ${part}}`);
+                logger.group(chalk.black`Part {yellow ${part}}`);
                 await action(year, day, part);
-                console.groupEnd();
+                logger.groupEnd();
             }
         },
         years,

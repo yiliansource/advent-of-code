@@ -2,12 +2,12 @@ import chalk from "chalk";
 
 export function makeBanner(): void {
     console.log();
-    console.log(chalk.whiteBright`       c`);
+    console.log(chalk.yellowBright`       c`);
     console.log(chalk.green`      >${makeDecoration(1)}<`);
-    console.log(chalk.green`     >${makeDecoration(3)}<      ` + chalk.yellow.bold`* Advent of Code *`);
-    console.log(chalk.green`    >${makeDecoration(5)}<     ` + chalk.gray(makeQuote()));
+    console.log(chalk.green`     >${makeDecoration(3)}<      ` + chalk.yellow.bold`Advent of Code`);
+    console.log(chalk.green`    >${makeDecoration(5)}<     ` + chalk.white(makeQuote()));
     console.log(chalk.green`   >${makeDecoration(7)}<`);
-    console.log(chalk.gray`     _|_|_`);
+    console.log(chalk.dim.red`     _|_|_`);
     console.log();
 }
 
@@ -18,7 +18,7 @@ function makeDecoration(width: number): string {
 
     let left = Math.floor(Math.random() * width);
 
-    const possibleDecorations = ["o", "O", "@", "*"];
+    const possibleDecorations = ["o", "O", "@", "*", "#"];
     const possibleAlternations = [",", "."];
     const possibleDecorationColors = ["cyan", "red", "magenta", "blue"];
 

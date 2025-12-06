@@ -11,6 +11,7 @@ import { getDayDir } from "./lib/paths.js";
 import { readPerformanceTable, writePerformanceTable } from "./lib/performance.js";
 import { sleep } from "./lib/promise.js";
 import * as runner from "./lib/runner.js";
+import * as logger from "./lib/logger.js";
 
 makeBanner();
 
@@ -48,15 +49,15 @@ await runner.forEachYear(async (year) => {
     const performanceTable = readPerformanceTable(year);
 
     for (const day of argv.days) {
-        console.group(chalk.black`{yellow ${day.toString().padStart(2, "0")}}/12/${year.toString()}`);
+        logger.group(chalk.black`{yellow ${day.toString().padStart(2, "0")}}/12/${year.toString()}`);
 
         const input = fs.readFileSync(path.join(getDayDir(year, day), "input.txt"), "utf-8");
 
         for (const part of argv.parts) {
-            console.group(chalk.black`Part {yellow ${part}}:`);
+            logger.group(chalk.black`Part {yellow ${part}}:`);
 
             if (!runner.hasSolver(year, day, part)) {
-                console.log(chalk.black`< no solver found >`);
+                logger.log(chalk.black`< no solver found >`);
             } else {
                 const runtimes: number[] = [];
                 const spinner = ora({ text: `Benchmarking ...` }).start();
@@ -70,7 +71,7 @@ await runner.forEachYear(async (year) => {
 
                 const mean = runtimes.reduce((acc, cur) => acc + cur, 0) / runtimes.length;
                 const stdev = Math.sqrt(runtimes.reduce((acc, cur) => acc + (cur - mean) ** 2) / (runtimes.length - 1));
-                console.log(
+                logger.log(
                     chalk.cyan("μ = " + formatDuration(mean)) +
                         " " +
                         chalk.dim.gray("(σ = " + formatDuration(stdev) + ")")
@@ -79,10 +80,10 @@ await runner.forEachYear(async (year) => {
                 performanceTable[day - 1][part - 1] = mean;
             }
 
-            console.groupEnd();
+            logger.groupEnd();
         }
 
-        console.groupEnd();
+        logger.groupEnd();
     }
 
     writePerformanceTable(year, performanceTable);
